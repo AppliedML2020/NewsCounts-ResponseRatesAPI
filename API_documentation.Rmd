@@ -96,10 +96,10 @@ As days pass by, we can look to more interesting trends not just for the state l
 
 |  Name | Required | Description | Example |
 |--------|---------|---------|-----------|
-|```STATE```| Optional | ISO 2 letter abbreviation for U.S. states | NY |
+|```DATA``` | Optional | List of values you want to get. It has to be at least one of the following separated by a comma: CRRAL, CRRINT, DAVG, DINTAVG, DRRALL, DRRINT. If not present, all of them will be returned. | CRRAL,DRRALL|
 |```FROM``` | Required when ```TO``` is present | Date with format YYYY-MM-DD | 2020-03-23|
 |```TO``` | Required when ```FROM``` is present | Date with format YYYY-MM-DD | 2020-03-25|
-|```DATA``` | Optional | List of values you want to get. It has to be at least one of the following separated by a comma: CRRAL, CRRINT, DAVG, DINTAVG, DRRALL, DRRINT. If not present, all of them will be returned. | CRRAL,DRRALL|
+|```STATE```| Optional | ISO 2 letter abbreviation for U.S. states | NY |
 
 **Example request:**
 ```
@@ -123,11 +123,11 @@ https://newscounts.appspot.com/api/response_rates/state?DATA=CRRALL,DRRALL&STATE
 
 |  Name | Required | Description | Example |
 |--------|---------|---------|-----------|
-|```STATE```| Optional | ISO 2 letter abbreviation for U.S. states | NY |
-|```COUNTY```| Required when ```STATE``` is present | [FIPS county codes](https://www.census.gov/prod/techdoc/cbp/cbp95/st-cnty.pdf) | 1 (For Autauga County in Alabama) |
+|```DATA``` | Optional | List of values you want to get. It has to be at least one of the following separated by a comma: CRRAL, CRRINT, DAVG, DINTAVG, DRRALL, DRRINT. If not present, all of them will be returned. | CRRAL,DRRALL|
 |```FROM``` | Required when ```TO``` is present | Date with format YYYY-MM-DD | 2020-03-23|
 |```TO``` | Required when ```FROM``` is present | Date with format YYYY-MM-DD | 2020-03-25|
-|```DATA``` | Optional | List of values you want to get. It has to be at least one of the following separated by a comma: CRRAL, CRRINT, DAVG, DINTAVG, DRRALL, DRRINT. If not present, all of them will be returned. | CRRAL,DRRALL|
+|```STATE```| Optional | ISO 2 letter abbreviation for U.S. states | NY |
+|```COUNTY```| Required when ```STATE``` is present | [FIPS county codes](https://www.census.gov/prod/techdoc/cbp/cbp95/st-cnty.pdf) | 1 (For Autauga County in Alabama) |
 
 **Example request:**
 ```
@@ -151,12 +151,13 @@ https://newscounts.appspot.com/api/response_rates/county?DATA=CRRALL,DRRALL&STAT
 
 |  Name | Required | Description | Example |
 |--------|---------|---------|-----------|
+|```DATA``` | Optional | List of values you want to get. It has to be at least one of the following separated by a comma: CRRAL, CRRINT, DAVG, DINTAVG, DRRALL, DRRINT. If not present, all of them will be returned. | CRRAL,DRRALL|
+|```FROM``` | Required when ```TO``` is present | Date with format YYYY-MM-DD | 2020-03-23|
+|```TO``` | Required when ```FROM``` is present | Date with format YYYY-MM-DD | 2020-03-25|
 |```STATE```| Optional | ISO 2 letter abbreviation for U.S. states | NY |
 |```COUNTY```| Required when ```STATE``` is present | [FIPS county codes](https://www.census.gov/prod/techdoc/cbp/cbp95/st-cnty.pdf) | 1 (For Autauga County in Alabama) |
 |```TRACT``` | Required when ```COUNTY``` is present | 2020 Census tract number | 020100|
-|```FROM``` | Required when ```TO``` is present | Date with format YYYY-MM-DD | 2020-03-23|
-|```TO``` | Required when ```FROM``` is present | Date with format YYYY-MM-DD | 2020-03-25|
-|```DATA``` | Optional | List of values you want to get. It has to be at least one of the following separated by a comma: CRRAL, CRRINT, DAVG, DINTAVG, DRRALL, DRRINT. If not present, all of them will be returned. | CRRAL,DRRALL|
+
 
 **Example request:**
 ```

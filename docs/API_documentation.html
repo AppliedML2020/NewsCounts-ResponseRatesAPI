@@ -480,10 +480,10 @@ names(county_df) &lt;- names(county_data[[which(lengths(county_data)&gt;0)[1]]])
 </thead>
 <tbody>
 <tr class="odd">
-<td><code>STATE</code></td>
+<td><code>DATA</code></td>
 <td>Optional</td>
-<td>ISO 2 letter abbreviation for U.S. states</td>
-<td>NY</td>
+<td>List of values you want to get. It has to be at least one of the following separated by a comma: CRRAL, CRRINT, DAVG, DINTAVG, DRRALL, DRRINT. If not present, all of them will be returned.</td>
+<td>CRRAL,DRRALL</td>
 </tr>
 <tr class="even">
 <td><code>FROM</code></td>
@@ -498,10 +498,10 @@ names(county_df) &lt;- names(county_data[[which(lengths(county_data)&gt;0)[1]]])
 <td>2020-03-25</td>
 </tr>
 <tr class="even">
-<td><code>DATA</code></td>
+<td><code>STATE</code></td>
 <td>Optional</td>
-<td>List of values you want to get. It has to be at least one of the following separated by a comma: CRRAL, CRRINT, DAVG, DINTAVG, DRRALL, DRRINT. If not present, all of them will be returned.</td>
-<td>CRRAL,DRRALL</td>
+<td>ISO 2 letter abbreviation for U.S. states</td>
+<td>NY</td>
 </tr>
 </tbody>
 </table>
@@ -535,34 +535,34 @@ names(county_df) &lt;- names(county_data[[which(lengths(county_data)&gt;0)[1]]])
 </thead>
 <tbody>
 <tr class="odd">
-<td><code>STATE</code></td>
+<td><code>DATA</code></td>
 <td>Optional</td>
-<td>ISO 2 letter abbreviation for U.S. states</td>
-<td>NY</td>
+<td>List of values you want to get. It has to be at least one of the following separated by a comma: CRRAL, CRRINT, DAVG, DINTAVG, DRRALL, DRRINT. If not present, all of them will be returned.</td>
+<td>CRRAL,DRRALL</td>
 </tr>
 <tr class="even">
-<td><code>COUNTY</code></td>
-<td>Required when <code>STATE</code> is present</td>
-<td><a href="https://www.census.gov/prod/techdoc/cbp/cbp95/st-cnty.pdf">FIPS county codes</a></td>
-<td>1 (For Autauga County in Alabama)</td>
-</tr>
-<tr class="odd">
 <td><code>FROM</code></td>
 <td>Required when <code>TO</code> is present</td>
 <td>Date with format YYYY-MM-DD</td>
 <td>2020-03-23</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>TO</code></td>
 <td>Required when <code>FROM</code> is present</td>
 <td>Date with format YYYY-MM-DD</td>
 <td>2020-03-25</td>
 </tr>
-<tr class="odd">
-<td><code>DATA</code></td>
+<tr class="even">
+<td><code>STATE</code></td>
 <td>Optional</td>
-<td>List of values you want to get. It has to be at least one of the following separated by a comma: CRRAL, CRRINT, DAVG, DINTAVG, DRRALL, DRRINT. If not present, all of them will be returned.</td>
-<td>CRRAL,DRRALL</td>
+<td>ISO 2 letter abbreviation for U.S. states</td>
+<td>NY</td>
+</tr>
+<tr class="odd">
+<td><code>COUNTY</code></td>
+<td>Required when <code>STATE</code> is present</td>
+<td><a href="https://www.census.gov/prod/techdoc/cbp/cbp95/st-cnty.pdf">FIPS county codes</a></td>
+<td>1 (For Autauga County in Alabama)</td>
 </tr>
 </tbody>
 </table>
@@ -596,22 +596,10 @@ names(county_df) &lt;- names(county_data[[which(lengths(county_data)&gt;0)[1]]])
 </thead>
 <tbody>
 <tr class="odd">
-<td><code>STATE</code></td>
+<td><code>DATA</code></td>
 <td>Optional</td>
-<td>ISO 2 letter abbreviation for U.S. states</td>
-<td>NY</td>
-</tr>
-<tr class="even">
-<td><code>COUNTY</code></td>
-<td>Required when <code>STATE</code> is present</td>
-<td><a href="https://www.census.gov/prod/techdoc/cbp/cbp95/st-cnty.pdf">FIPS county codes</a></td>
-<td>1 (For Autauga County in Alabama)</td>
-</tr>
-<tr class="odd">
-<td><code>TRACT</code></td>
-<td>Required when <code>COUNTY</code> is present</td>
-<td>2020 Census tract number</td>
-<td>020100</td>
+<td>List of values you want to get. It has to be at least one of the following separated by a comma: CRRAL, CRRINT, DAVG, DINTAVG, DRRALL, DRRINT. If not present, all of them will be returned.</td>
+<td>CRRAL,DRRALL</td>
 </tr>
 <tr class="even">
 <td><code>FROM</code></td>
@@ -626,10 +614,22 @@ names(county_df) &lt;- names(county_data[[which(lengths(county_data)&gt;0)[1]]])
 <td>2020-03-25</td>
 </tr>
 <tr class="even">
-<td><code>DATA</code></td>
+<td><code>STATE</code></td>
 <td>Optional</td>
-<td>List of values you want to get. It has to be at least one of the following separated by a comma: CRRAL, CRRINT, DAVG, DINTAVG, DRRALL, DRRINT. If not present, all of them will be returned.</td>
-<td>CRRAL,DRRALL</td>
+<td>ISO 2 letter abbreviation for U.S. states</td>
+<td>NY</td>
+</tr>
+<tr class="odd">
+<td><code>COUNTY</code></td>
+<td>Required when <code>STATE</code> is present</td>
+<td><a href="https://www.census.gov/prod/techdoc/cbp/cbp95/st-cnty.pdf">FIPS county codes</a></td>
+<td>1 (For Autauga County in Alabama)</td>
+</tr>
+<tr class="even">
+<td><code>TRACT</code></td>
+<td>Required when <code>COUNTY</code> is present</td>
+<td>2020 Census tract number</td>
+<td>020100</td>
 </tr>
 </tbody>
 </table>
