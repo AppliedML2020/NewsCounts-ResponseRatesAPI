@@ -35,7 +35,7 @@ county_df <- data.frame(matrix(unlist(county_data), ncol = max(lengths(county_da
 names(county_df) <- names(county_data[[which(lengths(county_data)>0)[1]]])
 ```
 
-With the daily state response data we can find out, for example, which New York counties have higher response rates on and which counties are doing worst by the date this document is created (March 26).
+With the daily state response data we can find out, for example, which New York counties have higher response rates and which counties are doing worst by the date this document is created (March 26).
 
 * Counties with higher response rate
 
@@ -59,7 +59,9 @@ worst_ny <- new_york %>%
 knitr::kable(worst_ny[0:5,c("county_name","CRRALL")])
 ```
 
-By having the daily data we can do more interesting things like doing into time series to look for trends in the response rates. For this example I am going to compare the cumulative response rate for the states of California, New York, Pennsylvania and Alaska.
+
+By having the daily data we can do more interesting things, such as time series to look for trends in the response rates. For this example I am going to compare the cumulative response rate for the states of California, New York, Pennsylvania and Alaska.
+
 
 ```{r, echo=FALSE}
 states <- c("California","New York","Pennsylvania","Alaska")
