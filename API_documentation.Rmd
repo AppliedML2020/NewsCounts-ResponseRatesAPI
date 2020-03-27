@@ -1,0 +1,178 @@
+---
+title: "2020 Census response rates API"
+author: Bernardo Lopez Vicencio, [NewsCounts](https://newscounts.org/)
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(httr)
+library(ggplot2)
+library(jsonlite)
+```
+
+
+The Census Bureau, starting on March 20, has been releasing daily data of the [2020 Census response rates](https://2020census.gov/en/response-rates.html) through a well documented [API](https://www.census.gov/data/developers/data-sets/decennial-response-rates.html). In NewsCounts we have been keeping track of these daily data and now we have it available for everyone who wants to use it through our own API.
+
+## Use examples
+
+First we load the response data for each state and each county:
+```{r}
+response <- GET("https://newscounts.appspot.com/api/response_rates/state")
+state_data <- content(response)
+
+response <- GET("https://newscounts.appspot.com/api/response_rates/county")
+county_data <- content(response)
+
+
+state_df <- data.frame(matrix(unlist(state_data), ncol = max(lengths(state_data)), byrow = TRUE))
+names(state_df) <- names(state_data[[which(lengths(state_data)>0)[1]]])
+
+county_df <- data.frame(matrix(unlist(county_data), ncol = max(lengths(county_data)), byrow = TRUE))
+names(county_df) <- names(county_data[[which(lengths(county_data)>0)[1]]])
+```
+
+With the daily state response data we can find out, for example, which New York counties have higher response rates on and which counties are doing worst by the date this document is created (March 26).
+
+* Counties with higher response rate
+
+```{r, echo=FALSE}
+new_york <-county_df %>%
+  filter(county_df$state_short =="NY", county_df$RESP_DATE == "2020-03-26") %>%
+  mutate(CRRALL=as.numeric(as.character(CRRALL)))
+
+best_ny <- new_york %>%
+  arrange(desc(new_york$CRRAL))
+
+knitr::kable(best_ny[0:5,c("county_name","CRRALL")])
+```
+
+* Counties with lowest response rate
+
+```{r, echo=FALSE}
+worst_ny <- new_york %>%
+  arrange(new_york$CRRAL)
+
+knitr::kable(worst_ny[0:5,c("county_name","CRRALL")])
+```
+
+By having the daily data we can do more interesting things like doing into time series to look for trends in the response rates. For this example I am going to compare the cumulative response rate for the states of California, New York, Pennsylvania and Alaska.
+
+```{r, echo=FALSE}
+states <- c("California","New York","Pennsylvania","Alaska")
+ts_data <- state_df %>%
+  filter(state_df$state_name %in% states)
+ts_data <-ts_data[c("RESP_DATE","state_name","CRRALL")] %>%
+  mutate(CRRALL=as.numeric(as.character(CRRALL))) %>%
+  mutate(RESP_DATE=as.Date(as.character(RESP_DATE)))
+
+
+g <- ggplot(ts_data, aes(RESP_DATE, CRRALL,
+                            color = state_name)) +
+  geom_line(aes(group = state_name)) +
+  ylim(c(0.0,32.0)) +
+  ylab("CRALL") +
+  xlab("Date")+
+  ggtitle("Selected states cumulative response rates") +
+    theme(legend.title = element_blank())
+g + geom_point()
+```
+
+As days pass by, we can look to more interesting trends not just for the state level, but also for counties and tracts.
+
+## Documentation
+
+### State data
+**Method:** GET
+
+**URL:** ```https://newscounts.appspot.com/api/response_rates/state```
+
+**Response format:** JSON
+
+**Parameters:**
+
+|  Name | Required | Description | Example |
+|--------|---------|---------|-----------|
+|```STATE```| Optional | ISO 2 letter abbreviation for U.S. states | NY |
+|```FROM``` | Required when ```TO``` is present | Date with format YYYY-MM-DD | 2020-03-23|
+|```TO``` | Required when ```FROM``` is present | Date with format YYYY-MM-DD | 2020-03-25|
+|```DATA``` | Optional | List of values you want to get. It has to be at least one of the following separated by a comma: CRRAL, CRRINT, DAVG, DINTAVG, DRRALL, DRRINT. If not present, all of them will be returned. | CRRAL,DRRALL|
+
+**Example request:**
+```
+https://newscounts.appspot.com/api/response_rates/state?DATA=CRRALL,DRRALL&STATE=NY&FROM=2020-03-23&TO=2020-03-25
+```
+**Example response:**
+```
+{"CRRALL":22.3,"DRRALL":2.2,"GEO_ID":"0400000US36","RESP_DATE":"2020-03-25","state":36,"state_name":"New York","state_short":"NY"},
+{"CRRALL":20.1,"DRRALL":2.2,"GEO_ID":"0400000US36","RESP_DATE":"2020-03-24","state":36,"state_name":"New York","state_short":"NY"},
+{"CRRALL":17.9,"DRRALL":1.5,"GEO_ID":"0400000US36","RESP_DATE":"2020-03-23","state":36,"state_name":"New York","state_short":"NY"}
+```
+
+### County data
+**Method:** GET
+
+**URL:** ```https://newscounts.appspot.com/api/response_rates/county```
+
+**Response format:** JSON
+
+**Parameters:**
+
+|  Name | Required | Description | Example |
+|--------|---------|---------|-----------|
+|```STATE```| Optional | ISO 2 letter abbreviation for U.S. states | NY |
+|```COUNTY```| Required when ```STATE``` is present | [FIPS county codes](https://www.census.gov/prod/techdoc/cbp/cbp95/st-cnty.pdf) | 1 (For Autauga County in Alabama) |
+|```FROM``` | Required when ```TO``` is present | Date with format YYYY-MM-DD | 2020-03-23|
+|```TO``` | Required when ```FROM``` is present | Date with format YYYY-MM-DD | 2020-03-25|
+|```DATA``` | Optional | List of values you want to get. It has to be at least one of the following separated by a comma: CRRAL, CRRINT, DAVG, DINTAVG, DRRALL, DRRINT. If not present, all of them will be returned. | CRRAL,DRRALL|
+
+**Example request:**
+```
+https://newscounts.appspot.com/api/response_rates/county?DATA=CRRALL,DRRALL&STATE=NY&COUNTY=3&FROM=2020-03-23&TO=2020-03-25
+```
+**Example response:**
+```
+{"CRRALL":19.6,"DRRALL":1.5,"GEO_ID":"0500000US36003","RESP_DATE":"2020-03-25","county":"003","county_name":"Allegany","state":36,"state_name":"New York","state_short":"NY"},
+{"CRRALL":18.1,"DRRALL":1.0,"GEO_ID":"0500000US36003","RESP_DATE":"2020-03-24","county":"003","county_name":"Allegany","state":36,"state_name":"New York","state_short":"NY"},
+{"CRRALL":17.1,"DRRALL":0.5,"GEO_ID":"0500000US36003","RESP_DATE":"2020-03-23","county":"003","county_name":"Allegany","state":36,"state_name":"New York","state_short":"NY"}
+```
+
+### Tract data
+**Method:** GET
+
+**URL:** ```https://newscounts.appspot.com/api/response_rates/tract```
+
+**Response format:** JSON
+
+**Parameters:**
+
+|  Name | Required | Description | Example |
+|--------|---------|---------|-----------|
+|```STATE```| Optional | ISO 2 letter abbreviation for U.S. states | NY |
+|```COUNTY```| Required when ```STATE``` is present | [FIPS county codes](https://www.census.gov/prod/techdoc/cbp/cbp95/st-cnty.pdf) | 1 (For Autauga County in Alabama) |
+|```TRACT``` | Required when ```COUNTY``` is present | 2020 Census tract number | 020100|
+|```FROM``` | Required when ```TO``` is present | Date with format YYYY-MM-DD | 2020-03-23|
+|```TO``` | Required when ```FROM``` is present | Date with format YYYY-MM-DD | 2020-03-25|
+|```DATA``` | Optional | List of values you want to get. It has to be at least one of the following separated by a comma: CRRAL, CRRINT, DAVG, DINTAVG, DRRALL, DRRINT. If not present, all of them will be returned. | CRRAL,DRRALL|
+
+**Example request:**
+```
+https://newscounts.appspot.com/api/response_rates/tract?DATA=CRRALL,DRRALL&STATE=NY&COUNTY=3&FROM=2020-03-25&TO=2020-03-25&TRACT=950600
+```
+**Example response:**
+```
+{"CRRALL":24.9,"DRRALL":2.2,"GEO_ID":"1400000US36003950600","RESP_DATE":"2020-03-25","county":"003","county_name":"Allegany","state":36,"state_name":"New York","state_short":"NY","tract":"950600"}
+```
+
+## DATA labels definition
+* **CRRALL:** Cumulative Self-Response Rate - Overall
+* **CRRINT:** Cumulative Self-Response Rate - Internet
+* **DAVG:** Average Daily Overall Self-Response Rate
+* **DINTAVG:** Average Daily Internet Self-Response Rate
+* **DRRALL:** Daily Self-Response Rate - Overall
+* **DRRINT:** Daily Self-Response Rate - Internet
+
+
