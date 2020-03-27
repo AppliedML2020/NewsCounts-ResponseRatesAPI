@@ -50,7 +50,7 @@ best_ny <- new_york %>%
 knitr::kable(best_ny[0:5,c("county_name","CRRALL")])
 ```
 
-* Counties with lowest response rate
+* Counties with low response rate
 
 ```{r, echo=FALSE}
 worst_ny <- new_york %>%
