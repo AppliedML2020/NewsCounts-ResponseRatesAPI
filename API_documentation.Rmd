@@ -15,6 +15,8 @@ library(ggplot2)
 
 The Census Bureau, starting on March 20, has been releasing daily data of the [2020 Census response rates](https://2020census.gov/en/response-rates.html) through a well documented [API](https://www.census.gov/data/developers/data-sets/decennial-response-rates.html). In NewsCounts we have been keeping track of these daily data and now we have it available for everyone who wants to use it through our own API.
 
+Our API offers daily snapshots of the response rates, as opposed to the cumulative data that the Bureau’s API provides. Also our API gives the ability of retrieving data in JSON format, CSV files that can be opened in Excel, and it can create automated plots of the response rates.
+
 ## Use examples
 
 Downloading the data is as simple as going to a specific URL in your favorite web browser. For example, to get the response rates for all states go to:
