@@ -1,13 +1,20 @@
 import os
 import logging
+import csv
+from io import StringIO
+from io import BytesIO
 import sqlalchemy
 import config
 import pymysql
 import datetime
+import pandas as pd
 from datetime import date
 
-from flask import Flask, render_template, jsonify, abort, request, make_response
+from flask import Flask, render_template, jsonify, abort, request, make_response,Response
 from flask.json import JSONEncoder
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
 
 
 class CustomJSONEncoder(JSONEncoder):
@@ -70,6 +77,8 @@ available_data = ["CRRALL","CRRINT","DAVG","DINTAVG","DRRALL","DRRINT"]
 
 available_data_tract = ["CRRALL","CRRINT","DRRALL","DRRINT"]
 
+available_formats = ["JSON", "CSV","PNG"]
+
 @app.route("/")
 def home():
     return  render_template("home.html")
@@ -85,10 +94,10 @@ def get_state_data():
             where_state = get_where_state()
             selection = get_selection("state")
 
-            query = conn.execute(
-                f"SELECT {selection} FROM state_response_rates WHERE NOT ISNULL(RESP_DATE) {date_interval} {where_state} ORDER BY RESP_DATE DESC, state_short;"
-            ).fetchall()
-            return jsonify([dict(row) for row in query])
+            query = f"SELECT {selection} FROM state_response_rates WHERE NOT ISNULL(RESP_DATE) {date_interval} {where_state} ORDER BY RESP_DATE DESC, state_short;"
+            
+            return response_in_format(conn, query,"state")
+
     except Exception as e:
         logger.exception(e)
         abort(400)
@@ -105,10 +114,10 @@ def get_county_data():
             where_county = get_where_county()
             selection = get_selection("county")
             
-            query = conn.execute(
-                f"SELECT {selection} FROM county_response_rates WHERE NOT ISNULL(RESP_DATE) {date_interval} {where_state} {where_county} ORDER BY RESP_DATE DESC, state_short, county_name;"
-            ).fetchall()
-            return jsonify([dict(row) for row in query])
+            query = f"SELECT {selection} FROM county_response_rates WHERE NOT ISNULL(RESP_DATE) {date_interval} {where_state} {where_county} ORDER BY RESP_DATE DESC, state_short, county_name;"
+            
+            return response_in_format(conn, query,"county")
+
     except Exception as e:
         logger.exception(e)
         abort(400)
@@ -126,10 +135,10 @@ def get_tract_data():
             where_tract = get_where_tract()
             selection = get_selection("tract")
             
-            query = conn.execute(
-                f"SELECT {selection} FROM tract_response_rates WHERE NOT ISNULL(RESP_DATE) {date_interval} {where_state} {where_county} {where_tract} ORDER BY RESP_DATE DESC, state_short, county_name, tract;"
-            ).fetchall()
-            return jsonify([dict(row) for row in query])
+            query = f"SELECT {selection} FROM tract_response_rates WHERE NOT ISNULL(RESP_DATE) {date_interval} {where_state} {where_county} {where_tract} ORDER BY RESP_DATE DESC, state_short, county_name, tract;"
+
+            return response_in_format(conn, query,"tract")
+
     except Exception as e:
         logger.exception(e)
         abort(400)
@@ -147,81 +156,100 @@ def some_error(error):
     return make_response(jsonify({'error': str(error)}), 400)
 
 def valid_state_request():
-    return valid_dates() and valid_data("state") and valid_state()
+    return valid_format() & valid_dates() and valid_data("state") and valid_state("state",request.args["FORMAT"]=="PNG")
 
 def valid_county_request():
-    return valid_dates() and valid_data("county") and valid_state("COUNTY" in request.args) and valid_county()
+    return valid_format() & valid_dates() and valid_data("county") and valid_state("county","COUNTY" in request.args) and valid_county("county",request.args["FORMAT"]=="PNG")
 
 def valid_tract_request():
-    return valid_dates() and valid_data("tract") and valid_state(True) and valid_county("TRACT" in request.args) and valid_tract()
+    return valid_format() & valid_dates() and valid_data("tract") and valid_state("tract",True) and valid_county("tract","TRACT" in request.args) and valid_tract(request.args["FORMAT"]=="PNG")
+
+def valid_format():
+    if "FORMAT" not in request.args:
+        return False
+    else:
+        return request.args["FORMAT"] in available_formats
 
 def state_request_msg():
     msg = "Something went wrong"
+    if not valid_format():
+        return "Invalid FORMAT value"
     if not valid_dates():
         return "Invalid dates format"
     if not valid_data("state"):
         return "Invalid DATA value"
-    if not valid_state():
+    if not valid_state("state",request.args["FORMAT"]=="PNG"):
         return "Invalid STATE value"
     return msg
 
 def county_request_msg():
     msg = "Something went wrong"
+    if not valid_format():
+        return "Invalid FORMAT value"
     if not valid_dates():
         return "Invalid dates format"
     if not valid_data("county"):
         return "Invalid data value"
-    if not valid_state("COUNTY" in request.args):
+    if not valid_state("county","COUNTY" in request.args):
         return "Invalid STATE value"
-    if not valid_county():
+    if not valid_county("county",request.args["FORMAT"]=="PNG"):
         return "Invalid COUNTY value"
     return msg
 
 def tract_request_msg():
     msg = "Something went wrong"
+    if not valid_format():
+        return "Invalid FORMAT value"
     if not valid_dates():
         return "Invalid dates format"
     if not valid_data("tract"):
         return "Invalid data value"
-    if not valid_state(True):
+    if not valid_state("tract",True):
         return "Invalid STATE value"
-    if not valid_county("TRACT" in request.args):
+    if not valid_county("tract","TRACT" in request.args):
         return "Invalid COUNTY value"
-    if not valid_tract():
+    if not valid_tract(request.args["FORMAT"]=="PNG"):
         return "Invalid TRACT value"
     return msg
 
-def valid_state(required=False):
+def valid_state(t,required=False):
     if not required and "STATE" not in request.args:
         return True
     else:
         if "STATE" not in request.args:
             return False
-        state = request.args["STATE"]
+        state = request.args["STATE"].split(",")
+        if t!="state" and len(state)>1:
+            return False
+        
         try: 
             with db.connect() as conn:
                 query = conn.execute(
                     f"SELECT DISTINCT state_short FROM state_response_rates ;"
                 ).fetchall()
-                return state in [row[0] for row in query]
+                
+                return sum([ x not in [row[0] for row in query] for x in state ]) == 0
         except Exception as e:
             logger.exception(e)
             return False
 
-def valid_county(required=False):
+def valid_county(t,required=False):
     if not required and "COUNTY" not in request.args:
         return True
     else:
         if "COUNTY" not in request.args:
             return False
-        county = int(request.args["COUNTY"])
+        county = request.args["COUNTY"].split(",")
+        if t!="county" and len(county)>1:
+            return False
+
         state = request.args["STATE"]
         try: 
             with db.connect() as conn:
                 query = conn.execute(
                     f"SELECT DISTINCT CONVERT(county,SIGNED INTEGER) FROM county_response_rates WHERE state_short=\"{state}\" ;"
                 ).fetchall()
-                return county in [int(row[0]) for row in query]
+                return sum([ int(x) not in [int(row[0]) for row in query] for x in county ]) == 0
         except Exception as e:
             logger.exception(e)
             return False
@@ -232,7 +260,7 @@ def valid_tract(required=False):
     else:
         if "TRACT" not in request.args:
             return False
-        tract = int(request.args["TRACT"])
+        tract = request.args["TRACT"].split(",")
         state = request.args["STATE"]
         county = int(request.args["COUNTY"])
         try: 
@@ -240,7 +268,7 @@ def valid_tract(required=False):
                 query = conn.execute(
                     f"SELECT DISTINCT CONVERT(tract,SIGNED  INTEGER) FROM tract_response_rates  WHERE state_short=\"{state}\" AND CONVERT(county,SIGNED  INTEGER)={county} ;"
                 ).fetchall()
-                return tract in [int(row[0]) for row in query]
+                return sum([ int(x) not in [int(row[0]) for row in query] for x in tract ]) == 0
         except Exception as e:
             logger.exception(e)
             return False
@@ -251,9 +279,15 @@ def valid_data(type):
     if type=="tract":
         a_d = available_data_tract
     if "DATA" in request.args:
+        if request.args["FORMAT"]=="PNG" and len(request.args["DATA"].split(","))>1:
+            return False
+
         return sum([ x not in a_d for x in request.args["DATA"].split(",") ]) == 0
     else:
-        return True
+        if request.args["FORMAT"]=="PNG":
+            return False
+        else:
+            return True
 
 def valid_dates():
     if "FROM" not in request.args and "TO" not in request.args:
@@ -285,20 +319,21 @@ def get_date_interval():
 
 def get_where_state():
     if "STATE" in request.args:
-        state = request.args["STATE"]
-        return f" AND state_short = \"{state}\" "
+        state = request.args["STATE"].split(",")
+        state = "\""+"\",\"".join(state)+"\""
+        return f" AND state_short in ({state}) "
     return ""
 
 def get_where_county():
     if "COUNTY" in request.args:
-        county = int(request.args["COUNTY"])
-        return f" AND CONVERT(county,SIGNED  INTEGER) = {county} "
+        county = request.args["COUNTY"]
+        return f" AND CONVERT(county,SIGNED  INTEGER) in ({county}) "
     return ""
 
 def get_where_tract():
     if "TRACT" in request.args:
-        tract = int(request.args["TRACT"])
-        return f" AND CONVERT(tract,SIGNED  INTEGER) = {tract} "
+        tract = request.args["TRACT"]
+        return f" AND CONVERT(tract,SIGNED  INTEGER) in ({tract}) "
     return ""
 
 def get_selection(type):
@@ -317,3 +352,74 @@ def get_selection(type):
     if type=="tract":
         return f" RESP_DATE, GEO_ID, {data}, state, state_name, state_short, county, county_name, tract "
     return "*"
+
+def response_in_format(conn, query,type):
+    format = request.args["FORMAT"]
+    if format == "JSON":
+        query = conn.execute(query)
+        return jsonify([dict(row) for row in query.fetchall()])   
+
+    if format == "CSV":
+        query = conn.execute(query)
+
+        si = StringIO()
+        cw = csv.writer(si)
+        cw.writerow(query.keys())
+        cw.writerows(query.fetchall())
+        output = make_response(si.getvalue())
+        output.headers["Content-Disposition"] = f"attachment; filename={type}_response_rates.csv"
+        output.headers["Content-type"] = "text/csv"
+        return output
+
+    if format == "PNG":
+        fig = create_figure(conn, query,type)
+        output = BytesIO()
+        FigureCanvas(fig).print_png(output)
+        return Response(output.getvalue(), mimetype='image/png')
+
+def create_figure(conn, query,tt):
+    d = request.args["DATA"]
+    data = pd.read_sql(query, conn)
+    data["RESP_DATE"] = pd.to_datetime(data.RESP_DATE)
+
+    if tt=="state":
+        col="state_short"
+    if tt=="county":
+        col="county"
+    if tt=="tract":
+        col="tract"
+
+    if tt!="state":
+        data[col] = data[col].astype(int)
+
+    df = pd.DataFrame({'date':data.RESP_DATE.unique()})
+    t=tt.capitalize()
+
+    for s in request.args[tt.upper()].split(","):
+            ss = s
+            col_name = s
+            if tt!="state":
+                ss = int(s)
+                col_name = t+"_"+str(s)
+            df[col_name] = df.date.map(data[data[col]==ss].set_index('RESP_DATE')[d])
+    
+    df = df.set_index('date')
+    fig = plt.figure(figsize=(12,6))
+    axis = fig.add_subplot(1, 1, 1)
+    m=0
+    for s in request.args[tt.upper()].split(","):
+        col_name = s
+        ll = s
+        if tt!="state":
+            col_name = t+"_"+str(s)
+            ll = t+" "+str(s)
+        df[col_name].plot(style='o-', label=ll,ax=axis)
+        m=max(m,df[col_name].max()+5)
+    axis.set_ylim(0,m)
+    axis.set_xlabel("Date")
+    axis.set_ylabel(d)
+    axis.set_title(f"{t} response rates")
+    plt.legend()
+    plt.tight_layout()
+
+    return fig
