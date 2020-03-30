@@ -84,7 +84,7 @@ As days pass by, we can look to more interesting trends not just for the state l
 |```DATA``` | Required if ```FORMAT``` is PNG | List of values you want to get. It has to be at least one of the following separated by a comma: CRRAL, CRRINT, DAVG, DINTAVG, DRRALL, DRRINT. Select only one if ```FORMAT``` is PNG. If not present, all of them will be returned. | CRRAL,DRRALL|
 |```FROM``` | Required when ```TO``` is present | Date with format YYYY-MM-DD | 2020-03-23|
 |```TO``` | Required when ```FROM``` is present | Date with format YYYY-MM-DD | 2020-03-25|
-|```STATE```| Required if ```FORMAT``` is PNG | ISO 2 letter abbreviation for U.S. states. If ```FORMAT``` is PNG you can select many states separated by a comma.  | NY |
+|```STATE```| Required if ```FORMAT``` is PNG | ISO 2 letter abbreviation for U.S. states. You can select many states separated by a comma.  | NY,CA |
 
 **Example request:**
 
@@ -116,7 +116,7 @@ https://newscounts.appspot.com/api/response_rates/state?FORMAT=JSON&DATA=CRRALL,
 |```FROM``` | Required when ```TO``` is present | Date with format YYYY-MM-DD | 2020-03-23|
 |```TO``` | Required when ```FROM``` is present | Date with format YYYY-MM-DD | 2020-03-25|
 |```STATE```| Required if ```COUNTY``` is present | ISO 2 letter abbreviation for U.S. states | NY |
-|```COUNTY```| Required if ```FORMAT``` is PNG | [FIPS county codes](https://www.census.gov/prod/techdoc/cbp/cbp95/st-cnty.pdf). If ```FORMAT``` is PNG you can select many counties separated by a comma. | 1 (For Autauga County in Alabama) |
+|```COUNTY```| Required if ```FORMAT``` is PNG | [FIPS county codes](https://www.census.gov/prod/techdoc/cbp/cbp95/st-cnty.pdf). You can select many counties separated by a comma. | 1,3 |
 
 **Example request:**
 
@@ -149,7 +149,7 @@ https://newscounts.appspot.com/api/response_rates/county?FORMAT=JSON&DATA=CRRALL
 |```TO``` | Required when ```FROM``` is present | Date with format YYYY-MM-DD | 2020-03-25|
 |```STATE```| Required when ```COUNTY``` is present | ISO 2 letter abbreviation for U.S. states | NY |
 |```COUNTY```| Required when ```TRACT``` is present | [FIPS county codes](https://www.census.gov/prod/techdoc/cbp/cbp95/st-cnty.pdf) | 1 (For Autauga County in Alabama) |
-|```TRACT``` | Required if ```FORMAT``` is PNG | 2020 Census tract number. If ```FORMAT``` is PNG you can select many tracts separated by a comma. | 020100|
+|```TRACT``` | Required if ```FORMAT``` is PNG | 2020 Census tract number. You can select many tracts separated by a comma. | 020100|
 
 
 **Example request:**
