@@ -58,7 +58,7 @@ By having the daily data we can do more interesting things, such as time series 
 For this example, by using the following URL, I can get a plot that compares the cumulative response rate for the states of California, New York, Pennsylvania and Alaska.
 
 ```{r}
-image_url <- "https://newscounts.appspot.com/api/response_rates/state?FORMAT=PNG&DATA=CRRALL&STATE=NY,PA,AK,CA"
+image_url <- "https://newscounts.appspot.com/api/response_rates/state?FORMAT=PNG&DATA=CRRALL&STATE=CA,NY,PA,AK"
 ```
 
 ![Example automatic plot.](`r image_url`)
