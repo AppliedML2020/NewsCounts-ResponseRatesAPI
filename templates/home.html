@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>NewsCounts</title>
+
+    <link rel="canonical" href="https://getbootstrap.com/docs/4.4/examples/dashboard/">
+
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.16.0/dist/bootstrap-table.min.css">
+
+    <style>
+      .bd-placeholder-img {
+        font-size: 1.125rem;
+        text-anchor: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+
+      @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+          font-size: 3.5rem;
+        }
+      }
+    </style>
+    <!-- Custom styles for this template -->
+    <link rel="stylesheet" href= "https://newscounts.appspot.com/static/styles/dashboard.css">
+  </head>
+  <body>
+    <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
+  <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="https://newscounts.org/" target="blank_">NewsCounts</a>
+  
+</nav>
+
+<div class="container-fluid">
+  <div class="row">
+    <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+      <div class="sidebar-sticky">
+        <h4 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+            <span>2020 Census</span>
+            <a class="d-flex align-items-center text-muted" href="#" aria-label="2020_Census">
+              <span data-feather="plus-circle"></span>
+            </a>
+        </h4>
+        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+            <span>Response rates</span>
+            <a class="d-flex align-items-center text-muted" href="#" aria-label="Response_rates">
+              <span data-feather="plus-circle"></span>
+            </a>
+        </h6>
+        <ul class="nav flex-column">
+          <li class="nav-item">
+            <a class="nav-link active" href="#" onclick="changeData(this,'State')" id="firstLink">
+              State<span class="sr-only">(current)</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#"  onclick="changeData(this,'County')">
+              County
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#"  onclick="changeData(this,'Tract')">
+              Tract
+            </a>
+          </li>
+        </ul>
+
+        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+          <span>API documentation</span>
+          <a class="d-flex align-items-center text-muted" href="#" aria-label="API_documentation">
+            <span data-feather="plus-circle"></span>
+          </a>
+        </h6>
+        <ul class="nav flex-column mb-2">
+          <li class="nav-item">
+            <a class="nav-link" href="https://bernacho.github.io/NewsCounts-ResponseRatesAPI/API_documentation.html" target="blank_">
+              <span data-feather="file-text"></span>
+              Documentation
+            </a>
+            </li>
+        </ul>
+      </div>
+    </nav>
+
+    <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2"><span id="title_type">Sate</span> response rates</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+          <button type="button" disabled class="btn btn-sm btn-outline-secondary" id="csvButton" data-link="#" onclick="openCSV()">
+            Download CSV
+          </button>
+        </div>
+      </div>
+
+      <form>
+        <div class="form-row">
+          <div class="col-2 form-group row" id="from_div">
+            <label for="from" class="col-sm-3 col-form-label">From:</label>
+            <div class="col-sm-9">
+                <input type="date" class="form-control" value="2020-03-20"  id="from" ></input>
+            </div>
+          </div>
+          <div class="col-2 form-group row" id="to_div">
+            <label for="to" class="col-sm-3 col-form-label">To:</label>
+            <div class="col-sm-9">
+                <input type="date" class="form-control"  id="to" ></input>
+            </div>
+          </div>
+          <div class="col-2 form-group row" id="state_div">
+            <label for="state" class="col-sm-4 col-form-label">State:</label>
+            <div class="col-sm-8">
+                <select class="custom-select mr-sm-2" id="state" onchange="updateSelect(this,'state')">
+                    <option selected value=""></option>
+                    <option value="all">All</option>
+                    <option value="select">Select</option>
+                </select>
+            </div>
+          </div>
+          <div class="col-2 form-group row" id="county_div">
+            <label for="county" class="col-sm-4 col-form-label">County:</label>
+            <div class="col-sm-8">
+                <select class="custom-select mr-sm-2" id="county"  onchange="updateSelect(this,'county')">
+                    
+                </select>
+            </div>
+          </div>
+          <div class="col-2 form-group row" id="tract_div">
+            <label for="tract" class="col-sm-4 col-form-label">Tract:</label>
+            <div class="col-sm-8">
+                <select class="custom-select mr-sm-2" id="tract"  onchange="updateSelect(this,'tract')">
+                   
+                </select>
+            </div>
+          </div>
+          <div class="col-2 ">
+            <button  type="button" class="btn btn-primary" id="button" disabled onclick="getData()" >Get data</button>
+          </div>
+        </div>
+      </form>
+
+      <div class="alert alert-danger alert-dismissible fade " role="alert" id='alert_div' style="display: none;">
+        <span id='alertText'></span>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close" onclick='$(".alert").removeClass("show");$("#alert_div").hide()'>
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      <div id="select_div" height="100px" style="display: none;">
+        <p id="selMan">Select as many options as you want.</p>
+        <div class="cont"></div>
+      </div>
+      <div id="selected_div" style="display: none;"></div>
+
+      <div id="plot" class="my-4 w-100" id="myChart" width="900" height="380" style="display: none;">
+        <div class="row">
+          <div id="radio-CRRALL" class="col-2">
+            <input type="radio" value="CRRALL" name="dataPlot" checked="checked"  onclick="changePlot(this)"/>
+            <label for="radio-CRRALL">Cumulative-All</label>
+          </div>
+          <div  id="radio-CRRINT"  class="col-2">
+            <input type="radio" value="CRRINT" name="dataPlot"  onclick="changePlot(this)"/>
+            <label for="radio-CRRINT">Cumulative-Internet</label>
+          </div>
+          <div  id="radio-DAVG"  class="col-2">
+            <input type="radio" value="DAVG" name="dataPlot"  onclick="changePlot(this)"/>
+            <label for="radio-DAVG">Daily avg.-All</label>
+          </div>
+          <div  id="radio-DINTAVG"  class="col-2">
+            <input type="radio" value="DINTAVG" name="dataPlot"  onclick="changePlot(this)"/>
+            <label for="radio-DINTAVG">Daily avg.-Internet</label>
+          </div>
+          <div  id="radio-DRRALL"  class="col-2">
+            <input type="radio" value="DRRALL" name="dataPlot"  onclick="changePlot(this)" />
+            <label for="radio-DRRALL">Daily-All</label>
+          </div>
+          <div  id="radio-DRRINT"  class="col-2">
+            <input type="radio" value="DRRINT" name="dataPlot" onclick="changePlot(this)"/>
+            <label for="radio-DRRINT">Daily-Internet</label>
+          </div>
+        </div>
+        
+        
+
+        
+
+         <div id="plotPlot"></div>
+      </div>
+
+      <h2>Data</h2>
+      <div class="table-responsive">
+        <table class="table  table-hover table-sm" data-toggle="table" id="table"
+        data-pagination="true"
+        data-search="true"
+        data-url=""
+        data-page-size="25"
+        data-page-list="[10, 25, 50, 100, 200]"
+        >
+          <thead class="thead-dark">
+            <tr>
+              <th  data-field="RESP_DATE" data-sortable="true" data-sorter="datesSorter">Date</th>
+              <th  data-field="state_name" data-sortable="true" >State</th>
+              <th  data-field="county_name" data-sortable="true" >County</th>
+              <th  data-field="tract" data-sortable="true" >Tract</th>
+              <th  data-field="CRRALL" data-sortable="true" >Cumulative-All</th>
+              <th  data-field="CRRINT" data-sortable="true" >Cumulative-Internet</th>
+              <th  data-field="DAVG" data-sortable="true" >Daily avg-All</th>
+              <th  data-field="DINTAVG" data-sortable="true" >Daily avg-Internet</th>
+              <th  data-field="DRRALL" data-sortable="true" >Daily-All</th>
+              <th  data-field="DRRINT" data-sortable="true" >Daily-Internet</th>
+            </tr>
+          </thead>
+          <tbody>
+            
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+<script
+			  src="https://code.jquery.com/jquery-3.4.1.min.js"
+			  integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+        crossorigin="anonymous"></script>
+        
+<script src="https://unpkg.com/bootstrap-table@1.16.0/dist/bootstrap-table.min.js"></script>
+
+<script type="text/javascript">
+  var data_type="state"
+
+  window.onload=function(){
+    changeData($("#firstLink"),"State");
+    
+  }
+
+  function updateSelect(el,t){
+    resetThings();
+    if($(el).val()=="all"){
+      $("#button").attr("disabled",false);
+    }else{
+      $("#button").attr("disabled",true);
+    }
+    switch(t){
+      case "state":
+        if($(el).val() == ""){
+          $("#county").val("");
+          $("#county_div").hide();
+          $("#tract").val("");
+          $("#tract_div").hide();
+        }
+      case "county":
+        if($(el).val() == ""){
+          $("#tract").val("");
+          $("#tract_div").hide();
+        }
+    }
+
+    if($(el).val() == "" || $(el).val()=="all"){
+      $("#select_div").hide();
+      $("#select_div .cont").html("");
+    } else if($(el).val() == "select"){
+      getOptions(t);
+    }else {
+      updateOptions(getNext(t));
+      if(getNext(t)!=data_type){
+        getOptions(getNext(t));
+      }
+      
+    }
+  }
+  function dynamicSort(property) {
+      var sortOrder = 1;
+
+      if(property[0] === "-") {
+          sortOrder = -1;
+          property = property.substr(1);
+      }
+
+      return function (a,b) {
+          if(sortOrder == -1){
+              return b[property].localeCompare(a[property]);
+          }else{
+              return a[property].localeCompare(b[property]);
+          }        
+      }
+  }
+
+  function updateOptions(t){
+    $("#select_div").hide();
+    $("#select_div .cont").html("");
+    $("#"+t+"_div").show();
+    if(t==data_type){
+      var s = '<option selected value=""></option><option value="all">All</option><option value="select">Select</option>';
+    }else{
+      var s = '<option selected value=""></option>';
+    }
+    $("#"+t).html("").append(s);
+  }
+
+  function getOptions(t){
+    if (t==""){
+      return false;
+    }
+      
+    switch(t){
+      default:
+      case "state":
+        var column_key = "state_short";
+        var column_val = "state_name";
+        var api_url = "https://newscounts.appspot.com/api/response_rates/state?FORMAT=JSON&FROM=2020-03-20&TO=2020-03-20" ;
+        break;
+      case "county":
+        var column_key = "county";
+        var column_val = "county_name";
+        var state = $("#state").val();
+        var api_url = "https://newscounts.appspot.com/api/response_rates/county?FORMAT=JSON&FROM=2020-03-20&TO=2020-03-20&STATE="+state ;
+        break;
+      case "tract":
+        var column_key = "tract";
+        var column_val = "tract";
+        var state = $("#state").val();
+        var county = $("#county").val();
+        var api_url = "https://newscounts.appspot.com/api/response_rates/tract?FORMAT=JSON&FROM=2020-03-20&TO=2020-03-20&STATE="+state+"&COUNTY="+county ;
+        break;
+    }
+    $.ajax({
+          url : api_url,
+          type : "get",
+          success : function(data) {
+            var res=data.map(function(item) { return {key:item[column_key], value: item[column_val]}; });
+            
+            res = res.sort(dynamicSort("key"))
+            if(t==data_type){
+              var total = Math.ceil(res.length/4)
+              var s=""
+              for(j=0;j<total;j++){
+                s+='<div class="row">';
+                for(i=0;i<4;i++){
+                  if(j+(i*total)<res.length){
+                    s+='<div class="form-check col-3"><input onclick="enableButton()" class="form-check-input" data-v="'+res[j+(i*total)]["value"]+'" type="checkbox" value="'+res[j+(i*total)]["key"]+'" ><label class="form-check-label" for="defaultCheck1">'+res[j+(i*total)]["value"]+'</label></div>'
+                  }
+                }
+                s+='</div>';
+              }
+              $("#select_div .cont").html("").append(s);
+              $("#select_div").show();
+            }else{
+              for(i=0;i<res.length;i++){
+                s+='<option selected value="'+res[i]["key"]+'">'+res[i]["value"]+'</option>';
+              }
+              $("#"+t).append(s);
+              $("#"+t).val("");
+              updateSelect($("#"+t),t);
+
+            }
+            
+          },
+          error: function() {
+            $("#select_div").hide();
+            $("#select_div .cont").html("");
+            $("#alertText").html("Error");
+            $(".alert").addClass("show");
+            $("#alert_div").show();
+          }
+      });
+  }
+
+  function changeData(el,t){
+    $("#title_type").html(t);
+    t=t.toLowerCase();
+    data_type = t;
+    updateOptions("state");
+    $("#state").val("");
+    updateSelect($("#state"),"state");
+    $(".sr-only").remove();
+    $(".nav-link").removeClass("active");
+    $(el).find(" span").append('<span class="sr-only">(current)</span>');
+    $(el).addClass("active");
+    $("#button").attr("disabled",true);
+  
+    if(data_type!="state"){
+      getOptions("state");
+    }
+    resetThings();
+  }
+
+  function resetThings(){
+    $("#plotPlot").html("");
+    $("#plot").hide();
+    $("#selected_div").hide();
+
+    $("#table").bootstrapTable('removeAll');
+    $("#table").bootstrapTable('showAllColumns');
+    $("#csvButton").data("link","#");
+    $("#csvButton").prop("disabled",true);
+    $('.bootstrap-table .form-control').val("").keyup();
+  }
+
+  function changePlot(ele){
+    if( $(ele).is(':checked') ){
+      $("#plotPlot").html("");
+      addImageAndData(true);
+    }
+  }
+
+  function addImageAndData(is_change){
+    var from=$("#from").val();
+    var to=$("#to").val();
+
+    var state=$("#state").val();
+    var county=$("#county").val();
+    var tract=$("#tract").val();
+
+    var extra="";
+    if(!is_change){
+      $("#table").bootstrapTable('removeAll');
+      $("#table").bootstrapTable('showAllColumns');
+      $("#csvButton").data("link","#");
+      $("#csvButton").prop("disabled",true);
+
+      $("#radio-CRRALL input").prop("checked", true);
+
+      $("#radio-DAVG").show();
+      $("#radio-DINTAVG").show();
+    }
+
+    var dataPlot=$("#plot input[name='dataPlot']:checked").val();
+    
+    switch(data_type){
+      default:
+      case "state":
+        var checked = [];
+        if(state!="all"){
+          
+          $.each($("#select_div input:checked"), function(){
+            checked.push($(this).val());
+          });
+          extra+="&STATE="+checked.join(",");
+        }else{
+          extra+="&STATE=*"
+        }
+        $("#table").bootstrapTable('hideColumn',"tract");
+        $("#table").bootstrapTable('hideColumn',"county_name");
+        
+        var api_url = "https://newscounts.appspot.com/api/response_rates/state?DATA="+dataPlot+"&FORMAT=PNG&FROM="+from+"&TO="+to+extra ;
+        var new_url = "https://newscounts.appspot.com/api/response_rates/state?FORMAT=JSON&FROM="+from+"&TO="+to+extra ;
+        var csv_url = "https://newscounts.appspot.com/api/response_rates/state?FORMAT=CSV&FROM="+from+"&TO="+to+extra ;
+        break;
+      case "county":
+        if(county!="all"){
+            var checked = [];
+            $.each($("#select_div input:checked"), function(){
+              checked.push($(this).val());
+            });
+            extra+="&COUNTY="+checked.join(",");
+        }else{
+          extra+="&COUNTY=*"
+        }
+        $("#table").bootstrapTable('hideColumn',"tract");
+
+        var api_url = "https://newscounts.appspot.com/api/response_rates/county?DATA="+dataPlot+"&FORMAT=PNG&FROM="+from+"&TO="+to+"&STATE="+state+extra ;
+        var new_url = "https://newscounts.appspot.com/api/response_rates/county?FORMAT=JSON&FROM="+from+"&TO="+to+"&STATE="+state+extra ;
+        var csv_url = "https://newscounts.appspot.com/api/response_rates/county?FORMAT=CSV&FROM="+from+"&TO="+to+"&STATE="+state+extra ;
+        break;
+      case "tract":
+        if(tract!="all"){
+          var checked = [];
+          $.each($("#select_div input:checked"), function(){
+            checked.push($(this).val());
+          });
+          extra+="&TRACT="+checked.join(",");
+        }else{
+          extra+="&TRACT=*"
+        }
+        $("#table").bootstrapTable('hideColumn',"DAVG");
+        $("#table").bootstrapTable('hideColumn',"DINTAVG");
+
+        $("#radio-DAVG").hide();
+        $("#radio-DINTAVG").hide();
+
+        var api_url = "https://newscounts.appspot.com/api/response_rates/tract?DATA="+dataPlot+"&FORMAT=PNG&FROM="+from+"&TO="+to+"&STATE="+state+"&COUNTY="+county+extra ;
+        var new_url = "https://newscounts.appspot.com/api/response_rates/tract?FORMAT=JSON&FROM="+from+"&TO="+to+"&STATE="+state+"&COUNTY="+county+extra ;
+        var csv_url = "https://newscounts.appspot.com/api/response_rates/tract?FORMAT=CSV&FROM="+from+"&TO="+to+"&STATE="+state+"&COUNTY="+county+extra ;
+        break;
+    }
+    s=' <img  src="'+api_url+'">';
+    $("#plotPlot").html("").append(s);
+    $("#plot").show();
+
+    if(!is_change){
+      $("#table").bootstrapTable('refresh', {
+        url: new_url
+      });
+      $('.bootstrap-table .form-control').val("").keyup();
+
+      $("#csvButton").prop("disabled",false);
+      $("#csvButton").data("link",csv_url);
+    }
+    
+    
+  }
+
+  function enableButton(){
+    var checks = $("#select_div input:checked");
+    $("#button").attr("disabled",checks.length==0);
+    
+  }
+
+  function getNext(t){
+    switch(t){
+      case "state":
+        return "county";
+      case "county":
+        return "tract";
+      default:
+        return "";
+    }
+  }
+
+  function getData(){
+    $(".alert").removeClass("show");
+    $("#alert_div").hide();
+
+    var from=$("#from").val();
+    var to=$("#to").val();
+    if(from=="" || to==""){
+      $("#alertText").html("Both dates are required");
+      $(".alert").addClass("show");
+      $("#alert_div").show();
+      resetThings();
+      return false;
+    }
+    var first_date = "2020-03-20";
+    if(from<first_date || to<first_date){
+      $("#alertText").html("Dates have to be at least "+first_date );
+      $(".alert").addClass("show");
+      $("#alert_div").show();
+      resetThings();
+      return false;
+    }
+
+    if(from>to){
+      $("#alertText").html("'From' date has to be before or equal to 'to' date");
+      $(".alert").addClass("show");
+      $("#alert_div").show();
+      resetThings();
+      return false;
+    }
+
+    addImageAndData(false);
+    if ($("#"+data_type).val()=="select"){
+      var checked = [];
+      $.each($("#select_div input:checked"), function(){
+        checked.push($(this).data("v"));
+      });
+      $("#selected_div").html("<p>Selected "+data_type+": "+checked.join(", ")+"</p>");
+      $("#select_div").hide();
+      $("#selected_div").show();
+    }else{
+      $("#selected_div").hide();
+    }
+  }
+  function openCSV() { 
+      window.open($("#csvButton").data("link"), "_blank"); 
+  } 
+  function datesSorter(a, b) {
+    if (new Date(a) < new Date(b)) return 1;
+    if (new Date(a) > new Date(b)) return -1;
+    return 0;
+  }
+</script>
+</html>

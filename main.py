@@ -11,6 +11,7 @@ import pandas as pd
 from datetime import date
 
 from flask import Flask, render_template, jsonify, abort, request, make_response,Response
+from flask_cors import CORS
 from flask.json import JSONEncoder
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -31,6 +32,7 @@ class CustomJSONEncoder(JSONEncoder):
 
 app = Flask(__name__)
 app.json_encoder = CustomJSONEncoder
+cors = CORS(app)
 
 logger = logging.getLogger()
 
@@ -218,6 +220,8 @@ def valid_state(t,required=False):
     else:
         if "STATE" not in request.args:
             return False
+        if t=="state" and request.args["STATE"]=="*":
+            return True
         state = request.args["STATE"].split(",")
         if t!="state" and len(state)>1:
             return False
@@ -239,6 +243,8 @@ def valid_county(t,required=False):
     else:
         if "COUNTY" not in request.args:
             return False
+        if t=="county" and request.args["COUNTY"]=="*":
+            return True
         county = request.args["COUNTY"].split(",")
         if t!="county" and len(county)>1:
             return False
@@ -260,6 +266,8 @@ def valid_tract(required=False):
     else:
         if "TRACT" not in request.args:
             return False
+        if request.args["TRACT"]=="*":
+            return True
         tract = request.args["TRACT"].split(",")
         state = request.args["STATE"]
         county = int(request.args["COUNTY"])
@@ -319,6 +327,9 @@ def get_date_interval():
 
 def get_where_state():
     if "STATE" in request.args:
+        if request.args["STATE"]=="*":
+            return ""
+
         state = request.args["STATE"].split(",")
         state = "\""+"\",\"".join(state)+"\""
         return f" AND state_short in ({state}) "
@@ -326,12 +337,16 @@ def get_where_state():
 
 def get_where_county():
     if "COUNTY" in request.args:
+        if request.args["COUNTY"]=="*":
+            return ""
         county = request.args["COUNTY"]
         return f" AND CONVERT(county,SIGNED  INTEGER) in ({county}) "
     return ""
 
 def get_where_tract():
     if "TRACT" in request.args:
+        if request.args["TRACT"]=="*":
+            return ""
         tract = request.args["TRACT"]
         return f" AND CONVERT(tract,SIGNED  INTEGER) in ({tract}) "
     return ""
@@ -384,10 +399,13 @@ def create_figure(conn, query,tt):
 
     if tt=="state":
         col="state_short"
+        lab="state_name"
     if tt=="county":
         col="county"
+        lab="county_name"
     if tt=="tract":
         col="tract"
+        lab="tract"
 
     if tt!="state":
         data[col] = data[col].astype(int)
@@ -395,26 +413,38 @@ def create_figure(conn, query,tt):
     df = pd.DataFrame({'date':data.RESP_DATE.unique()})
     t=tt.capitalize()
 
-    for s in request.args[tt.upper()].split(","):
+    uni = data[col].unique()
+    labels = {}
+
+    for s in uni:
             ss = s
             col_name = s
+            
             if tt!="state":
                 ss = int(s)
                 col_name = t+"_"+str(s)
+            labels[col_name] = data[data[col]==ss][lab].iloc[0]
             df[col_name] = df.date.map(data[data[col]==ss].set_index('RESP_DATE')[d])
     
     df = df.set_index('date')
     fig = plt.figure(figsize=(12,6))
     axis = fig.add_subplot(1, 1, 1)
     m=0
-    for s in request.args[tt.upper()].split(","):
+    if d=="CRRALL" or d=="CRRINT":
+        extra = 5
+    else:
+        extra = 1
+
+    for s in uni:
         col_name = s
         ll = s
         if tt!="state":
             col_name = t+"_"+str(s)
             ll = t+" "+str(s)
+        if tt!="tract":
+            ll = labels[col_name]
         df[col_name].plot(style='o-', label=ll,ax=axis)
-        m=max(m,df[col_name].max()+5)
+        m=max(m,df[col_name].max()+extra)
     axis.set_ylim(0,m)
     axis.set_xlabel("Date")
     axis.set_ylabel(d)
